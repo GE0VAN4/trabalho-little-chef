@@ -1,0 +1,49 @@
+#define PI 3.14159265 // valor de pi
+int dim = 9; // pino de saída circuito dimmer
+int zc = 2; // pino de entrada circuito zero cross
+float on; // atraso para o disparo do triac
+float off; // atraso para o bloqueio do triac
+float vrms; // tensão eficaz
+float pc; // potência sobre a carga
+int alfa2; // corresponde a 2α na fórmula do valor eficaz: vrms = vp × √(1/2 - α/360 + sen(2α)/4π)
+float sen2a; // corresponde a sen(2α) na fórmula do valor eficaz
+float raiz; // corresponde a 1/2 - α/360 + sen(2α)/4π
+
+void setup() {
+  pinMode(dim, OUTPUT); // define o circuito dimmer como saída
+  pinMode(zc, INPUT); // define o circuito zero cross como entrada
+  Serial.begin(9600); // inicializa monitor serial
+                     
+}                                                       
+
+void loop() {              
+   if (Serial.available()){ // verifica se algum dado foi inserido na entrada de texto do monitor serial
+      delay(10);
+      int alfa = Serial.parseInt(); // lê como um valor inteiro
+      if (alfa >= 0 && alfa <= 180) { // verifica se o ângulo está entre 0 e 180 graus
+   }
+   if(digitalRead(zc)==HIGH){ // verifica se o zc está ativado
+    digitalWrite(dim, LOW); // circuito dimmer desativado
+    on = (float)alfa * 8.33 / 180 // tempo de atraso para disparar o triac
+    delay(on);
+    digitalWrite(dim, HIGH);
+    off = 180 - (float)alfa * 8.33 / 180; // tempo de atraso para bloquear o triac
+    delay(off);
+    digitalWrite(dim, LOW);
+   }
+    alfa2 = alfa * 2; // calcula o 2α
+    sen2a = sin(alfa2 * PI / 180); // calcula o valor do seno de alfa, que foi convertido em radianos
+    raiz = 0.5 - ((float) alfa/360) + (sen2a/(4*PI)); // calcula (1/2 - α/360 + sen(2α)/4π), onde o valor de alfa foi convertido para float
+      
+    vrms = 179.6 * sqrt(raiz); // cálculo da tensao eficaz 179.6 * √(1/2 - α/360 - sen(2α)/4π)
+    pc = pow(vrms, 2)/100; // cálculo da potência p = (vrms^2)/100
+    Serial.print("Angulo de disparo: ");
+    Serial.println(alfa);
+    Serial.print("Tempo de atraso(ms): ");
+    Serial.println(on);
+    Serial.print("Tensao eficaz: ");
+    Serial.println(vrms);
+    Serial.print("Potencia na carga: ");
+    Serial.println(pc);
+}
+}
